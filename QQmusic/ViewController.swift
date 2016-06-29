@@ -22,10 +22,9 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
     var currentLine:Int = 0
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(111)
         //加载ACAudioPlayer
         createAVAudioPlayer()
-        createLrcView()
+        //createLrcView()
         //stopButton.removeFromSuperview()
         //增加playButton 监听点击事件
         playButton.userInteractionEnabled = true
@@ -40,8 +39,11 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    //创建播放对象
     func createAVAudioPlayer()
     {
+        //获取歌词展示tableView
+        createLrcView()
         let url:NSURL = NSBundle.mainBundle().URLForResource("情非得已", withExtension: "mp3")!
         //let str = "http://m1.music.126.net/7ys3rYhxqMcPqdKGEbb1DA==/1103909674294958.mp3"
         
@@ -54,6 +56,16 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
             {
                 //try audioPlayer = AVAudioPlayer.init(contentsOfURL: url!)
                 try self.audioPlayer = AVAudioPlayer(data: data!)
+                let session:AVAudioSession = AVAudioSession.sharedInstance();
+                do
+                {
+                    //设置后台播放  根据AVAudioSession单例类  http://www.swiftmi.com/topic/133.html
+                    try session.setActive(true)
+                    try session.setCategory(AVAudioSessionCategoryPlayback)
+                }catch
+                {
+                    print(error)
+                }
             }catch
             {
                 print(error)
@@ -91,6 +103,7 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
         //print(lrcTextArr)
         
     }
+    //tableView 必须实现的2个方法  一个是返回cell 行数 另一个是cell 每个参数的设定
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
         return lrcTimeArray.count
@@ -121,28 +134,12 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
             cell.textLabel!.font = UIFont.systemFontOfSize(15);
             cell.textLabel!.textColor = UIColor.blackColor();
         }
-        //cell.detailTextLabel?.text =
-        //print(cell.textLabel?.text)
+
         return cell
     }
-    
-    /*
-    
-    //改变 textLabel 的样式;
-    if (indexPath.row  == self.line) {
-    
-    cell.textLabel.font = [UIFont systemFontOfSize:20.0];
-    cell.textLabel.textColor = [UIColor blueColor];
-    } else {
-    cell.textLabel.font = [UIFont systemFontOfSize:15.0];
-    cell.textLabel.textColor = [UIColor blackColor];
-    }
-    
-    return cell;
- */
-    
-    
 
+    
+    //点击是申明的方法
     func imageViewTouch()
     {
         timer?.invalidate()
@@ -160,6 +157,7 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
             audioPlayer.pause()
         }
     }
+    //更新方法
     func onUpdate()
     {
         let currentTime = audioPlayer.currentTime
@@ -206,14 +204,10 @@ class ViewController: UIViewController,UITableViewDataSource,UITableViewDelegate
         if(lrcTimeArray.contains(String(current_time)))
         {
             currentLine = lrcTimeArray.indexOf(String(current_time))!
-            //print(currentLine)
-            //lryView.reloadData()
-            //let indexPath:NSIndexPath = NSIndexPath.indexAtPosition(currentLine)
             //lryView.selectRowAtIndexPath(indexPath, animated: true, scrollPosition: UITableViewScrollPosition.Middle)
             lryView.reloadRowsAtIndexPaths(lryView.indexPathsForVisibleRows!, withRowAnimation: UITableViewRowAnimation.Fade)
             let indexPath = NSIndexPath(forRow: currentLine, inSection: 0)
             //拿到角标滚动到哪个位置
-            //lryView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.Middle, animated: true)
             lryView.selectRowAtIndexPath(indexPath, animated: true, scrollPosition: UITableViewScrollPosition.Middle)
         }
         //更新播放时间
